@@ -36,6 +36,7 @@ set autoindent						"ident
 "===  editor  =======================
 "====================================
 set guifont=Powerline_Consolas:h12:cANSI:qDRAFT				"NeoVim not support
+:call libcallnr("vimtweak64.dll", "SetAlpha", 240)
 map <silent> <F2> :if &guioptions =~# 'T' <Bar>
 		\set guioptions-=T <Bar>
 		\set guioptions-=m <bar>
@@ -50,7 +51,7 @@ set guioptions-=b   "hide buttom scoll
 set guioptions-=L   "hide left scroll
 
 set number			"row number
-set norelativenumber"relative row number
+set relativenumber"relative row number
 set cursorline		"hilight line cursor
 set cursorcolumn	"hilight colum cursor
 set wrap			"autowrap
@@ -168,9 +169,17 @@ map <F5> :UndotreeToggle<CR>
 map ff :NERDTreeToggle<CR> 
 
 "------- Airline -----------
+"set ambiwidth=double                    " 设置为双字宽显示，否则无法完整显示如:☆
 let g:airline_theme='bubblegum'
-let g:airline#extensions#tabline#enabled = 1
 let g:airline_powerline_fonts = 1
+" 开启tabline
+let g:airline#extensions#tabline#enabled = 1      "tabline中当前buffer两端的分隔字符
+let g:airline#extensions#tabline#left_sep = ' '   "tabline中未激活buffer两端的分隔字符
+let g:airline#extensions#tabline#left_alt_sep = '|'      "tabline中buffer显示编号
+let g:airline#extensions#tabline#buffer_nr_show = 1      
+" 映射切换buffer的键位
+nnoremap [b :bp<CR>
+nnoremap ]b :bn<CR>
 
 "------- vim-autodormat ----
 "python need
@@ -185,39 +194,34 @@ map <C-m> <leader>cc
 map <A-m> <leader>cu
 unmap <CR>
 
+" 1. vscode defult 2. author defult 3. vscode show
+"	\	'guifgs': ['#B21212', '#1B9CED','#FFFC00'],
+"	\	'guifgs': ['royalblue3', 'darkorange3', 'seagreen3', 'firebrick'],
+"	\	'guifgs': ['#C186BF', '#268EDB','#F79318'],
 "------- Rainbow -----------
-let g:rbpt_colorpairs = [
-    \ ['brown',       'RoyalBlue3'],
-    \ ['Darkblue',    'SeaGreen3'],
-    \ ['darkgray',    'DarkOrchid3'],
-    \ ['darkgreen',   'firebrick3'],
-    \ ['darkcyan',    'RoyalBlue3'],
-    \ ['darkred',     'SeaGreen3'],
-    \ ['darkmagenta', 'DarkOrchid3'],
-    \ ['brown',       'firebrick3'],
-    \ ['gray',        'RoyalBlue3'],
-    \ ['black',       'SeaGreen3'],
-    \ ['darkmagenta', 'DarkOrchid3'],
-    \ ['Darkblue',    'firebrick3'],
-    \ ['darkgreen',   'RoyalBlue3'],
-    \ ['darkcyan',    'SeaGreen3'],
-    \ ['darkred',     'DarkOrchid3'],
-    "\ ['red',         'firebrick3'],
-    \ ]
-let g:rbpt_max = 16
-let g:rbpt_loadcmd_toggle = 0
-" Run these to awake the plug
-":RainbowParenthesesToggle       
-":RainbowParenthesesLoadRound   
-":RainbowParenthesesLoadSquare 
-":RainbowParenthesesLoadBraces
-":RainbowParenthesesLoadChevrons 
-au VimEnter * RainbowParenthesesToggle
-au VimEnter * RainbowParenthesesLoadRound
-au VimEnter * RainbowParenthesesLoadSquare
-au VimEnter * RainbowParenthesesLoadBraces
-au VimEnter * RainbowParenthesesLoadChevrons
-
+	let g:rainbow_conf = {
+	\	'guifgs': ['#C186BF', '#268EDB','#F79318'],
+	\	'ctermfgs': ['lightblue', 'lightyellow', 'lightcyan', 'lightmagenta'],
+	\	'operators': '_,_',
+	\	'parentheses': ['start=/(/ end=/)/ fold', 'start=/\[/ end=/\]/ fold', 'start=/{/ end=/}/ fold'],
+	\	'separately': {
+	\		'*': {},
+	\		'tex': {
+	\			'parentheses': ['start=/(/ end=/)/', 'start=/\[/ end=/\]/'],
+	\		},
+	\		'lisp': {
+	\			'guifgs': ['royalblue3', 'darkorange3', 'seagreen3', 'firebrick', 'darkorchid3'],
+	\		},
+	\		'vim': {
+	\			'parentheses': ['start=/(/ end=/)/', 'start=/\[/ end=/\]/', 'start=/{/ end=/}/ fold', 'start=/(/ end=/)/ containedin=vimFuncBody', 'start=/\[/ end=/\]/ containedin=vimFuncBody', 'start=/{/ end=/}/ fold containedin=vimFuncBody'],
+	\		},
+	\		'html': {
+	\			'parentheses': ['start=/\v\<((area|base|br|col|embed|hr|img|input|keygen|link|menuitem|meta|param|source|track|wbr)[ >])@!\z([-_:a-zA-Z0-9]+)(\s+[-_:a-zA-Z0-9]+(\=("[^"]*"|'."'".'[^'."'".']*'."'".'|[^ '."'".'"><=`]*))?)*\>/ end=#</\z1># fold'],
+	\		},
+	\		'css': 0,
+	\	}
+	\}
+let g:rainbow_active = 1
 "------- ALE ---------------
 "if need change airline icon:
 "   open ~/.vim/plugged/vim-airline/autoload/airline/extensions/ale.vim and replace
@@ -296,9 +300,32 @@ set conceallevel=1
 let g:tex_conceal='abdmg'
 
 "------- YCM ---------------
-"let g:ycm_global_ycm_extra_conf =’~/.vim/bundle/YouCompleteMe/third_party/ycmd/cpp/ycm/.ycm_extra_conf.py ‘
-
-
+set runtimepath+=~/.vim/plugged/YouCompleteMe
+autocmd InsertLeave * if pumvisible() == 0|pclose|endif "离开插入模式后自动关闭预览窗口"
+let g:ycm_collect_identifiers_from_tags_files = 1           " 开启 YCM基于标签引擎
+let g:ycm_collect_identifiers_from_comments_and_strings = 1 " 注释与字符串中的内容也用于补全
+let g:syntastic_ignore_files=[".*\.py$"]
+let g:ycm_seed_identifiers_with_syntax = 1                  " 语法关键字补全
+let g:ycm_complete_in_comments = 1
+let g:ycm_confirm_extra_conf = 0                            " 关闭加载.ycm_extra_conf.py提示
+let g:ycm_key_list_select_completion = ['<c-n>', '<Down>']  " 映射按键,没有这个会拦截掉tab, 导致其他插件的tab不能用.
+let g:ycm_key_list_previous_completion = ['<c-p>', '<Up>']
+let g:ycm_complete_in_comments = 1                          " 在注释输入中也能补全
+let g:ycm_complete_in_strings = 1                           " 在字符串输入中也能补全
+let g:ycm_collect_identifiers_from_comments_and_strings = 1 " 注释和字符串中的文字也会被收入补全
+"let g:ycm_global_ycm_extra_conf='~/.vim/bundle/YouCompleteMe/third_party/ycmd/cpp/ycm/.ycm_extra_conf.py'
+let g:ycm_global_ycm_extra_conf='~/.vim/plugged/YouCompleteMe/third_party/ycmd/cpp/.ycm_extra_conf.py'
+let g:ycm_show_diagnostics_ui = 0                           " 禁用语法检查
+inoremap <expr> <CR> pumvisible() ? "\<C-y>" : "\<CR>"
+" 回车即选中当前项
+nnoremap <c-j> :YcmCompleter GoToDefinitionElseDeclaration<CR>
+" 跳转到定义处
+let g:ycm_min_num_of_chars_for_completion=2                 " 从第2个键入字符就开始罗列匹配项
+let g:ycm_key_invoke_completion = '<c-z>'
+let g:ycm_semantic_triggers =  {
+			\ 'c,cpp,python,java,go,erlang,perl': ['re!\w{2}'],
+			\ 'cs,lua,javascript': ['re!\w{2}'],
+			\ }
 
 "------- Python-mode -------
 "开启警告
@@ -422,7 +449,8 @@ Plug 'vim-airline/vim-airline-themes'
 Plug 'Raimondi/delimitMate'
 Plug 'Chiel92/vim-autoformat'
 Plug 'preservim/nerdcommenter'
-Plug 'kien/rainbow_parentheses.vim'
+"Plug 'kien/rainbow_parentheses.vim'
+Plug 'luochen1990/rainbow'
 Plug 'godlygeek/tabular'
 Plug 'mzlogin/vim-markdown-toc'
 Plug 'plasticboy/vim-markdown'
@@ -434,10 +462,13 @@ Plug 'octol/vim-cpp-enhanced-highlight'
 Plug 'mhinz/vim-startify'
 Plug 'dhruvasagar/vim-table-mode'
 Plug 'vim-scripts/taglist.vim'
-"Plug 'ycm-core/YouCompleteMe'
+Plug 'ycm-core/YouCompleteMe'
+Plug 'vim-scripts/VimTweak'
+Plug 'mattn/transparency-windows-vim'
 call plug#end()
 
 "===================================
 "=== Theme =========================
 "===================================
-colorscheme snazzy
+colorscheme snazzy 
+
